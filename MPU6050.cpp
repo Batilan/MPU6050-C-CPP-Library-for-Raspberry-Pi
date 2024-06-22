@@ -5,15 +5,20 @@
 //Include the header file for this class
 #include "MPU6050.h"
 
-MPU6050::MPU6050(int8_t addr, bool run_update_thread) {
+#define MAX_DEV_STR_LEN 16
+
+// added i2c_bus_nr argument because some RPi's can have multiple i2c busses
+MPU6050::MPU6050(int8_t addr, int8_t i2c_bus_nr, bool run_update_thread) {
 	int status;
+        char i2c_bus[MAX_DEV_STR_LEN];
 
 	MPU6050_addr = addr;
 	dt = 0.009; //Loop time (recalculated with each loop)
 	_first_run = 1; //Variable for whether to set gyro angle to acceleration angle in compFilter
 	calc_yaw = false;
 
-	f_dev = open("/dev/i2c-1", O_RDWR); //Open the I2C device file
+        snprintf(i2c_bus, MAX_DEV_STR_LEN, "/dev/i2c-%d", i2c_bus_nr);
+	f_dev = open(i2c_bus, O_RDWR); //Open the I2C device file
 	if (f_dev < 0) { //Catch errors
 		std::cout << "ERR (MPU6050.cpp:MPU6050()): Failed to open /dev/i2c-1. Please check that I2C is enabled with raspi-config\n"; //Print error message
 	}
@@ -41,7 +46,10 @@ MPU6050::MPU6050(int8_t addr, bool run_update_thread) {
 	}
 }
 
-MPU6050::MPU6050(int8_t addr) : MPU6050(addr, true){}
+// Initialize default for i2c bus 1
+MPU6050::MPU6050(int8_t addr) : MPU6050(addr, 1, true){}
+MPU6050::MPU6050(int8_t addr, int8_t i2c_bus_nr) : MPU6050(addr, i2c_bus_nr, true){}
+MPU6050::MPU6050(int8_t addr, bool run_thread) : MPU6050(addr, 1, run_thread){}
 
 void MPU6050::getGyroRaw(float *roll, float *pitch, float *yaw) {
 	int16_t X = i2c_smbus_read_byte_data(f_dev, 0x43) << 8 | i2c_smbus_read_byte_data(f_dev, 0x44); //Read X registers
