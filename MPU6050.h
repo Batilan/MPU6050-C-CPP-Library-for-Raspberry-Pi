@@ -23,15 +23,43 @@
 //See the MPU6000 Register Map for more information
 
 
+//Offsets: now first call getOffsets to callibrate MPU6050, this should be done
+// when robot is level and not moving
 //Offsets - supply your own here (calculate offsets with getOffsets function)
+// accData: ['aX: -1.123, aY: 0.164, aZ: 2.217, gR: 6.817, gP: -3.634, gY: 0.076']
+// Calculating the offsets...
+//    Please keep the accelerometer level and still
+//    This could take a couple of minutes...Gyroscope R,P,Y: 151.358,-39.2457,-62.6989
+//Accelerometer X,Y,Z: 1272.49,-76.8944,11362.3
+//Calculating the offsets...
+//    Please keep the accelerometer level and still
+//    This could take a couple of minutes...Gyroscope R,P,Y: 152.498,-39.1055,-61.9359
+//Accelerometer X,Y,Z: 1311.59,-73.5824,11363.6
+
+
 //     Accelerometer
-#define A_OFF_X 19402
-#define A_OFF_Y -2692
-#define A_OFF_Z -8625
+//#define A_OFF_X 19402
+//#define A_OFF_Y -2692
+//#define A_OFF_Z -8625
 //    Gyroscope
-#define G_OFF_X -733
-#define G_OFF_Y 433
-#define G_OFF_Z -75
+//#define G_OFF_X -733
+//#define G_OFF_Y 433
+// For now left in offsets I got when board was still and level
+//#define G_OFF_Z -75
+//     Accelerometer
+#define A_OFF_X 1290
+#define A_OFF_Y -75
+#define A_OFF_Z 11362
+//    Gyroscope
+// Roll / Pitch / Yaw = X Y Z
+#define G_OFF_X 151
+#define G_OFF_Y -39
+#define G_OFF_Z -63
+
+//Choose how many callibration loops to do, originally 10000, might take quite a while
+// We might want to detect when in such a state and do new callibration untill some cleare movement is detected?
+//#define CALIBRATION_LOOPS 10000
+#define CALIBRATION_LOOPS 100
 
 //-----------------------END MODIFY THESE PARAMETERS-----------------------
 
@@ -96,7 +124,8 @@ class MPU6050 {
 		float _gyro_angle[3];
 		float _angle[3]; //Store all angles (accel roll, accel pitch, accel yaw, gyro roll, gyro pitch, gyro yaw, comb roll, comb pitch comb yaw)
 
-		float ax, ay, az, gr, gp, gy; //Temporary storage variables used in _update()
+		float ax, ay, az, gr, gp, gy; //Temporary storage variables for actual values used in _update()
+                float accel_x_off, accel_y_off, accel_z_off, gyro_r_off, gyro_p_off, gyro_y_off; // values that will be updated by getOffsets() calibration method.
 
 		int MPU6050_addr;
 		int f_dev; //Device file

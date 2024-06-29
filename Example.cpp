@@ -6,6 +6,8 @@
 
 #include <MPU6050.h>
 
+#define NR_SAMPLES 120
+
 MPU6050 device(0x68, 1, true);
 
 int main() {
@@ -16,17 +18,18 @@ int main() {
 
 
 	//Calculate the offsets
-/*
-	std::cout << "Calculating the offsets...\n    Please keep the accelerometer level and still\n    This could take a couple of minutes...";
-	device.getOffsets(&ax, &ay, &az, &gr, &gp, &gy);
-	std::cout << "Gyroscope R,P,Y: " << gr << "," << gp << "," << gy << "\nAccelerometer X,Y,Z: " << ax << "," << ay << "," << az << "\n";
-*/
 
+
+	std::cout << "Determining the offsets...\n    Please keep the accelerometer level and still\n    This could take a couple of minutes...";
+	device.getOffsets(&ax, &ay, &az, &gr, &gp, &gy);
+	std::cout << "Gyroscope Roll ,Pitch ,Yaw offsets: " << gr << "," << gp << "," << gy << "\nAccelerometer X, Y, Z offstes: " << ax << "," << ay << "," << az << "\n";
 
 	//Read the current yaw angle
 	device.calc_yaw = true;
 
-	for (int i = 0; i < 120; i++) {
+    
+	std::cout << "Reading " << NR_SAMPLES << " samples\n";
+	for (int i = 0; i < NR_SAMPLES; i++) {
 		device.getAngle(0, &gr);
 		device.getAngle(1, &gp);
 		device.getAngle(2, &gy);
@@ -34,20 +37,19 @@ int main() {
 		//std::cout << "Current angle around the pitch axis: " << gp << "\n";
 		//std::cout << "Current angle around the yaw axis: " << gy << "\n";
 		std::cout << "" << gr << ";" << gp << ";" << gy << "\n";
+	        //Get the current actual accelerometer values
+	        device.getAccel(&ax, &ay, &az);
+	        //Get the current actual gyroscope values
+	        device.getGyro(&gr, &gp, &gy);
+	        //std::cout << "Accelerometer Readings: X: " << ax << ", Y: " << ay << ", Z: " << az << "\n";
+	        //std::cout << "Gyroscope Readings: X: " << gr << ", Y: " << gp << ", Z: " << gy << "\n";
+	        //std::cout << "aX: " << ax << ", aY: " << ay << ", aZ: " << az << ", gR: " << gr << ", gP: " << gp << ", gY: " << gy << "\n";
+                std::cout.flush();
+
                 std::cout.flush();
 		usleep(500000); //0.25sec
 		//usleep(1000000); //1.0sec
 	}
-
-	//Get the current accelerometer values
-	device.getAccel(&ax, &ay, &az);
-	device.getGyro(&gr, &gp, &gy);
-	//std::cout << "Accelerometer Readings: X: " << ax << ", Y: " << ay << ", Z: " << az << "\n";
-
-	//Get the current gyroscope values
-	//#std::cout << "Gyroscope Readings: X: " << gr << ", Y: " << gp << ", Z: " << gy << "\n";
-	std::cout << "aX: " << ax << ", aY: " << ay << ", aZ: " << az << ", gR: " << gr << ", gP: " << gp << ", gY: " << gy << "\n";
-        std::cout.flush();
 
 	return 0;
 }

@@ -62,9 +62,9 @@ void MPU6050::getGyroRaw(float *roll, float *pitch, float *yaw) {
 
 void MPU6050::getGyro(float *roll, float *pitch, float *yaw) {
 	getGyroRaw(roll, pitch, yaw); //Store raw values into variables
-	*roll = round((*roll - G_OFF_X) * 1000.0 / GYRO_SENS) / 1000.0; //Remove the offset and divide by the gyroscope sensetivity (use 1000 and round() to round the value to three decimal places)
-	*pitch = round((*pitch - G_OFF_Y) * 1000.0 / GYRO_SENS) / 1000.0;
-	*yaw = round((*yaw - G_OFF_Z) * 1000.0 / GYRO_SENS) / 1000.0;
+	*roll = round((*roll - gyro_r_off) * 1000.0 / GYRO_SENS) / 1000.0; //Remove the offset and divide by the gyroscope sensetivity (use 1000 and round() to round the value to three decimal places)
+	*pitch = round((*pitch - gyro_p_off) * 1000.0 / GYRO_SENS) / 1000.0;
+	*yaw = round((*yaw - gyro_y_off) * 1000.0 / GYRO_SENS) / 1000.0;
 }
 
 void MPU6050::getAccelRaw(float *x, float *y, float *z) {
@@ -78,9 +78,9 @@ void MPU6050::getAccelRaw(float *x, float *y, float *z) {
 
 void MPU6050::getAccel(float *x, float *y, float *z) {
 	getAccelRaw(x, y, z); //Store raw values into variables
-	*x = round((*x - A_OFF_X) * 1000.0 / ACCEL_SENS) / 1000.0; //Remove the offset and divide by the accelerometer sensetivity (use 1000 and round() to round the value to three decimal places)
-	*y = round((*y - A_OFF_Y) * 1000.0 / ACCEL_SENS) / 1000.0;
-	*z = round((*z - A_OFF_Z) * 1000.0 / ACCEL_SENS) / 1000.0;
+	*x = round((*x - accel_x_off) * 1000.0 / ACCEL_SENS) / 1000.0; //Remove the offset and divide by the accelerometer sensetivity (use 1000 and round() to round the value to three decimal places)
+	*y = round((*y - accel_y_off) * 1000.0 / ACCEL_SENS) / 1000.0;
+	*z = round((*z - accel_z_off) * 1000.0 / ACCEL_SENS) / 1000.0;
 }
 
 void MPU6050::getOffsets(float *ax_off, float *ay_off, float *az_off, float *gr_off, float *gp_off, float *gy_off) {
@@ -90,7 +90,10 @@ void MPU6050::getOffsets(float *ax_off, float *ay_off, float *az_off, float *gr_
 	*gr_off = 0, *gp_off = 0, *gy_off = 0; //Initialize the offsets to zero
 	*ax_off = 0, *ay_off = 0, *az_off = 0; //Initialize the offsets to zero
 
-	for (int i = 0; i < 10000; i++) { //Use loop to average offsets
+	for (int i = 0; i < CALIBRATION_LOOPS; i++) { //Use loop to average offsets
+                // Temporary print for clarity
+                std::cout << "loop: " << (CALIBRATION_LOOPS-i) << "\r";
+                std::cout.flush();
 		getGyroRaw(&gyro_off[0], &gyro_off[1], &gyro_off[2]); //Raw gyroscope values
 		*gr_off = *gr_off + gyro_off[0], *gp_off = *gp_off + gyro_off[1], *gy_off = *gy_off + gyro_off[2]; //Add to sum
 
@@ -98,10 +101,18 @@ void MPU6050::getOffsets(float *ax_off, float *ay_off, float *az_off, float *gr_
 		*ax_off = *ax_off + accel_off[0], *ay_off = *ay_off + accel_off[1], *az_off = *az_off + accel_off[2]; //Add to sum
 	}
 
-	*gr_off = *gr_off / 10000, *gp_off = *gp_off / 10000, *gy_off = *gy_off / 10000; //Divide by number of loops (to average)
-	*ax_off = *ax_off / 10000, *ay_off = *ay_off / 10000, *az_off = *az_off / 10000;
+	*gr_off = *gr_off / CALIBRATION_LOOPS, *gp_off = *gp_off / CALIBRATION_LOOPS, *gy_off = *gy_off / CALIBRATION_LOOPS; //Divide by number of loops (to average)
+	*ax_off = *ax_off / CALIBRATION_LOOPS, *ay_off = *ay_off / CALIBRATION_LOOPS, *az_off = *az_off / CALIBRATION_LOOPS;
 
 	*az_off = *az_off - ACCEL_SENS; //Remove 1g from the value calculated to compensate for gravity)
+
+        accel_x_off = *ax_off;
+        accel_y_off = *ay_off;
+        accel_z_off = *az_off;
+        gyro_r_off  = *gr_off;
+        gyro_p_off  = *gp_off;
+        gyro_y_off  = *gy_off;
+        
 }
 
 int MPU6050::getAngle(int axis, float *result) {
