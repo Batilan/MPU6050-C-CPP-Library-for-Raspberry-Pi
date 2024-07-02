@@ -83,14 +83,14 @@ void MPU6050::getAccel(float *x, float *y, float *z) {
 	*z = round((*z - accel_z_off) * 1000.0 / ACCEL_SENS) / 1000.0;
 }
 
-void MPU6050::getOffsets(float *ax_off, float *ay_off, float *az_off, float *gr_off, float *gp_off, float *gy_off) {
+void MPU6050::getOffsets(float *ax_off, float *ay_off, float *az_off, float *gr_off, float *gp_off, float *gy_off, int nr_samples) {
 	float gyro_off[3]; //Temporary storage
 	float accel_off[3];
 
 	*gr_off = 0, *gp_off = 0, *gy_off = 0; //Initialize the offsets to zero
 	*ax_off = 0, *ay_off = 0, *az_off = 0; //Initialize the offsets to zero
 
-	for (int i = 0; i < CALIBRATION_LOOPS; i++) { //Use loop to average offsets
+	for (int i = 0; i < nr_samples; i++) { //Use loop to average offsets
                 // Temporary print for clarity
                 std::cout << "loop: " << (CALIBRATION_LOOPS-i) << "\r";
                 std::cout.flush();
